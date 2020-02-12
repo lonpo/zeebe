@@ -87,6 +87,7 @@ public final class Broker implements AutoCloseable {
   private CloseProcess closeProcess;
   private EmbeddedGatewayService embeddedGatewayService;
   private ServerTransport serverTransport;
+  private BrokerHealthCheckService healthCheckService;
 
   public Broker(final String configFileLocation, final String basePath, final ActorClock clock) {
     this(new SystemContext(configFileLocation, basePath, clock));
@@ -257,8 +258,7 @@ public final class Broker implements AutoCloseable {
 
   private AutoCloseable metricsServerStep(
       final NetworkCfg networkCfg, final BrokerInfo localBroker) {
-    final BrokerHealthCheckService healthCheckService =
-        new BrokerHealthCheckService(localBroker, atomix);
+    healthCheckService = new BrokerHealthCheckService(localBroker, atomix);
     partitionListeners.add(healthCheckService);
     scheduleActor(healthCheckService);
 
@@ -310,6 +310,8 @@ public final class Broker implements AutoCloseable {
                     commandHandler,
                     createFactory(topologyManager, clusterCfg, atomix, managementRequestHandler));
             scheduleActor(zeebePartition);
+            healthCheckService.registerMonitoredPartition(
+                owningPartition.id().id(), zeebePartition);
             return zeebePartition;
           });
     }

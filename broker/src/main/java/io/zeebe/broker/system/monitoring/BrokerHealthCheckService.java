@@ -16,6 +16,10 @@ import io.zeebe.broker.Loggers;
 import io.zeebe.broker.PartitionListener;
 import io.zeebe.logstreams.log.LogStream;
 import io.zeebe.protocol.impl.encoding.BrokerInfo;
+import io.zeebe.util.health.CriticalComponentsHealthMonitor;
+import io.zeebe.util.health.HealthMonitor;
+import io.zeebe.util.health.HealthMonitorable;
+import io.zeebe.util.health.HealthStatus;
 import io.zeebe.util.sched.Actor;
 import java.util.Map;
 import java.util.function.Function;
@@ -24,6 +28,7 @@ import org.slf4j.Logger;
 
 public final class BrokerHealthCheckService extends Actor implements PartitionListener {
 
+  public static final String PARTITION_COMPONENT_NAME_FORMAT = "Partition-%d";
   private static final Logger LOG = Loggers.SYSTEM_LOGGER;
   private final Atomix atomix;
   private final String actorName;
@@ -31,11 +36,28 @@ public final class BrokerHealthCheckService extends Actor implements PartitionLi
   /* set to true when all partitions are installed. Once set to true, it is never
   changed. */
   private volatile boolean brokerStarted = false;
+  private final HealthMonitor healthMonitor;
 
   public BrokerHealthCheckService(final BrokerInfo localBroker, final Atomix atomix) {
     this.atomix = atomix;
     this.actorName = buildActorName(localBroker.getNodeId(), "HealthCheckService");
+    this.healthMonitor = new CriticalComponentsHealthMonitor(actor, LOG);
     initializePartitionInstallStatus();
+    initializePartitionHealthStatus();
+  }
+
+  private void initializePartitionHealthStatus() {
+    final RaftPartitionGroup partitionGroup =
+        (RaftPartitionGroup) atomix.getPartitionService().getPartitionGroup(GROUP_NAME);
+    final MemberId nodeId = atomix.getMembershipService().getLocalMember().id();
+
+    partitionGroup.getPartitions().stream()
+        .filter(partition -> partition.members().contains(nodeId))
+        .map(partition -> partition.id().id())
+        .forEach(
+            partitionId ->
+                healthMonitor.monitorComponent(
+                    String.format(PARTITION_COMPONENT_NAME_FORMAT, partitionId)));
   }
 
   public boolean isBrokerReady() {
@@ -82,5 +104,26 @@ public final class BrokerHealthCheckService extends Actor implements PartitionLi
   @Override
   public String getName() {
     return actorName;
+  }
+
+  @Override
+  protected void onActorStarted() {
+    healthMonitor.startMonitoring();
+  }
+
+  public void registerComponent(final String componentName, final HealthMonitorable component) {
+    healthMonitor.registerComponent(componentName, component);
+  }
+
+  public void registerMonitoredPartition(final int partitionId, final HealthMonitorable partition) {
+    final String componentName = String.format(PARTITION_COMPONENT_NAME_FORMAT, partitionId);
+    registerComponent(componentName, partition);
+  }
+
+  public HealthStatus getBrokerHealth() {
+    if (isBrokerReady()) {
+      return healthMonitor.getHealthStatus();
+    }
+    return HealthStatus.UNHEALTHY;
   }
 }
