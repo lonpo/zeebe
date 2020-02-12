@@ -15,6 +15,7 @@ import io.grpc.ServerInterceptors;
 import io.grpc.netty.NettyServerBuilder;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.grpc.TracingServerInterceptor;
+import io.opentracing.contrib.tracerresolver.TracerResolver;
 import io.opentracing.noop.NoopTracerFactory;
 import io.zeebe.gateway.impl.broker.BrokerClient;
 import io.zeebe.gateway.impl.broker.BrokerClientFactory;
@@ -23,7 +24,6 @@ import io.zeebe.gateway.impl.configuration.GatewayCfg;
 import io.zeebe.gateway.impl.configuration.NetworkCfg;
 import io.zeebe.gateway.impl.configuration.SecurityCfg;
 import io.zeebe.gateway.impl.job.LongPollingActivateJobsHandler;
-import io.zeebe.protocol.impl.tracing.SbeTracingCodec;
 import io.zeebe.util.DurationUtil;
 import io.zeebe.util.VersionUtil;
 import io.zeebe.util.sched.ActorScheduler;
@@ -81,6 +81,18 @@ public final class Gateway {
     this.actorScheduler = actorScheduler;
   }
 
+  private static NettyServerBuilder setNetworkConfig(final NetworkCfg cfg) {
+    final Duration minKeepAliveInterval = DurationUtil.parse(cfg.getMinKeepAliveInterval());
+
+    if (minKeepAliveInterval.isNegative() || minKeepAliveInterval.isZero()) {
+      throw new IllegalArgumentException("Minimum keep alive interval must be positive.");
+    }
+
+    return NettyServerBuilder.forAddress(new InetSocketAddress(cfg.getHost(), cfg.getPort()))
+        .permitKeepAliveTime(minKeepAliveInterval.toMillis(), TimeUnit.MILLISECONDS)
+        .permitKeepAliveWithoutCalls(false);
+  }
+
   public GatewayCfg getGatewayCfg() {
     return gatewayCfg;
   }
@@ -101,12 +113,7 @@ public final class Gateway {
       interceptors.add(MonitoringServerInterceptor.create(Configuration.allMetrics()));
 
       if (gatewayCfg.getMonitoring().isTracing()) {
-        tracer =
-            io.jaegertracing.Configuration.fromEnv("io.zeebe.gateway")
-                .getTracerBuilder()
-                .registerInjector(SbeTracingCodec.format(), SbeTracingCodec.codec())
-                .registerExtractor(SbeTracingCodec.format(), SbeTracingCodec.codec())
-                .build();
+        tracer = TracerResolver.resolveTracer(getClass().getClassLoader());
         interceptors.add(
             TracingServerInterceptor.newBuilder().withTracer(tracer).withStreaming().build());
       }
@@ -129,18 +136,6 @@ public final class Gateway {
     server = serverBuilder.build();
 
     server.start();
-  }
-
-  private static NettyServerBuilder setNetworkConfig(final NetworkCfg cfg) {
-    final Duration minKeepAliveInterval = DurationUtil.parse(cfg.getMinKeepAliveInterval());
-
-    if (minKeepAliveInterval.isNegative() || minKeepAliveInterval.isZero()) {
-      throw new IllegalArgumentException("Minimum keep alive interval must be positive.");
-    }
-
-    return NettyServerBuilder.forAddress(new InetSocketAddress(cfg.getHost(), cfg.getPort()))
-        .permitKeepAliveTime(minKeepAliveInterval.toMillis(), TimeUnit.MILLISECONDS)
-        .permitKeepAliveWithoutCalls(false);
   }
 
   private void setSecurityConfig(final ServerBuilder<?> serverBuilder, final SecurityCfg security) {
