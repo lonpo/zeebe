@@ -206,8 +206,8 @@ public final class DispatcherIntegrationTest {
 
   @Test
   public void shouldFailToCreateDispatcherIfBufferTooSmall() {
-    final ByteValue frameLength = ByteValue.ofMegabytes(1);
-    final int requiredBufferSize = (int) frameLength.toBytes() * 2 * 3;
+    final long frameLength = ByteValue.ofMegabytes(1);
+    final long requiredBufferSize = frameLength * 2 * 3;
 
     final var builder =
         Dispatchers.create("test")
@@ -219,13 +219,13 @@ public final class DispatcherIntegrationTest {
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage(
             "Expected the buffer size to be greater than %s, but was %s. The max fragment length is set to %s.",
-            requiredBufferSize, frameLength.toBytes(), frameLength.toBytes());
+            requiredBufferSize, frameLength, frameLength);
   }
 
   @Test
   public void shouldSetBufferSizeDependingOnMaxFrameLength() {
-    final ByteValue frameLength = ByteValue.ofMegabytes(4);
-    final int expectedPartitionSize = (int) frameLength.toBytes() * 2;
+    final long frameLength = ByteValue.ofMegabytes(4);
+    final long expectedPartitionSize = frameLength * 2;
 
     final Dispatcher dispatcher =
         Dispatchers.create("test")
@@ -233,7 +233,7 @@ public final class DispatcherIntegrationTest {
             .maxFragmentLength(frameLength)
             .build();
 
-    assertThat(dispatcher.getMaxFragmentLength()).isEqualTo(frameLength.toBytes());
+    assertThat(dispatcher.getMaxFragmentLength()).isEqualTo(frameLength);
     assertThat(dispatcher.getLogBuffer().getPartitionSize()).isEqualTo(expectedPartitionSize);
   }
 
