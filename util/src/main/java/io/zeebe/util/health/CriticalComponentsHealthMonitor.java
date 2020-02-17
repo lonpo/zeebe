@@ -36,12 +36,12 @@ public class CriticalComponentsHealthMonitor implements HealthMonitor {
 
   @Override
   public void monitorComponent(final String componentName) {
-    actor.call(() -> componentHealth.put(componentName, HealthStatus.UNHEALTHY));
+    actor.run(() -> componentHealth.put(componentName, HealthStatus.UNHEALTHY));
   }
 
   @Override
   public void removeComponent(final String componentName) {
-    actor.call(
+    actor.run(
         () -> {
           monitoredComponents.remove(componentName);
           componentHealth.remove(componentName);
@@ -50,7 +50,7 @@ public class CriticalComponentsHealthMonitor implements HealthMonitor {
 
   @Override
   public void registerComponent(final String componentName, final HealthMonitorable component) {
-    actor.call(
+    actor.run(
         () -> {
           monitoredComponents.put(componentName, component);
           component.addFailureListener(
@@ -68,18 +68,24 @@ public class CriticalComponentsHealthMonitor implements HealthMonitor {
 
   @Override
   public void addFailureListener(final FailureListener failureListener) {
-    actor.call(() -> this.failureListener = failureListener);
+    actor.run(() -> this.failureListener = failureListener);
   }
 
   private void onComponentFailure(final String componentName) {
-    log.error("{} failed, marking it as unhealthy", componentName);
-    componentHealth.put(componentName, HealthStatus.UNHEALTHY);
-    reCalculateHealth();
+    actor.call(
+        () -> {
+          log.error("{} failed, marking it as unhealthy", componentName);
+          componentHealth.put(componentName, HealthStatus.UNHEALTHY);
+          reCalculateHealth();
+        });
   }
 
   private void onComponentRecovered(final String componentName) {
-    log.error("{} failed, marking it as unhealthy", componentName);
-    componentHealth.put(componentName, HealthStatus.UNHEALTHY);
+    actor.call(
+        () -> {
+          log.error("{} failed, marking it as unhealthy", componentName);
+          componentHealth.put(componentName, HealthStatus.UNHEALTHY);
+        });
   }
 
   private void updateHealth() {
