@@ -20,23 +20,17 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
-public class StandaloneBroker implements CommandLineRunner {
+public class StandaloneBroker {
   private static final CountDownLatch WAITING_LATCH = new CountDownLatch(1);
   private static String tempFolder;
-
-  @Autowired BrokerCfg config;
+  private static BrokerCfg config;
 
   public static void main(final String[] args) throws Exception {
     if (args.length == 1) {
       System.setProperty("spring.config.additional-location", "file:" + args[0]);
     }
 
-    SpringApplication.run(StandaloneBroker.class, args);
-  }
-
-  @Override
-  public void run(final String... args) throws Exception {
+    SpringApplication.run(SpringBootConifgurationLoader.class, args);
 
     final Broker broker;
 
@@ -64,7 +58,7 @@ public class StandaloneBroker implements CommandLineRunner {
     WAITING_LATCH.await();
   }
 
-  private Broker createBrokerFromConfiguration(final String[] args) {
+  private static Broker createBrokerFromConfiguration(final String[] args) {
     String basePath = System.getProperty("basedir");
 
     if (basePath == null) {
@@ -74,7 +68,7 @@ public class StandaloneBroker implements CommandLineRunner {
     return new Broker(config, basePath, null);
   }
 
-  private Broker createDefaultBrokerInTempDirectory() {
+  private static Broker createDefaultBrokerInTempDirectory() {
     Loggers.SYSTEM_LOGGER.info("No configuration file specified. Using default configuration.");
 
     try {
@@ -92,6 +86,16 @@ public class StandaloneBroker implements CommandLineRunner {
       } catch (final IOException e) {
         e.printStackTrace();
       }
+    }
+  }
+
+  @SpringBootApplication
+  public static class SpringBootConifgurationLoader implements CommandLineRunner {
+    @Autowired BrokerCfg config;
+
+    @Override
+    public void run(final String... args) throws Exception {
+      StandaloneBroker.config = config;
     }
   }
 }
