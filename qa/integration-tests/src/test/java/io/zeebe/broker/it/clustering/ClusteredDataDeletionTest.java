@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.springframework.util.unit.DataSize;
 
 @RunWith(Parameterized.class)
 public final class ClusteredDataDeletionTest {
@@ -62,8 +63,7 @@ public final class ClusteredDataDeletionTest {
     data.setMaxSnapshots(MAX_SNAPSHOTS);
     data.setSnapshotPeriod(SNAPSHOT_PERIOD_SECONDS + "s");
     data.setLogSegmentSize("8k");
-    brokerCfg.getNetwork().setMaxMessageSize("8K");
-
+    brokerCfg.getNetwork().setMaxMessageSize(DataSize.ofKilobytes(8));
     brokerCfg.setExporters(Collections.emptyList());
   }
 
@@ -72,7 +72,7 @@ public final class ClusteredDataDeletionTest {
     data.setMaxSnapshots(MAX_SNAPSHOTS);
     data.setSnapshotPeriod(SNAPSHOT_PERIOD_SECONDS + "s");
     data.setLogSegmentSize("8k");
-    brokerCfg.getNetwork().setMaxMessageSize("8K");
+    brokerCfg.getNetwork().setMaxMessageSize(DataSize.ofKilobytes(8));
 
     final ExporterCfg exporterCfg = new ExporterCfg();
     exporterCfg.setClassName(TestExporter.class.getName());

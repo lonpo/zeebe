@@ -1,5 +1,5 @@
 # Zeebe standalone gateway configuration file, for the configuration of the embedded gateway
-# see the gateway section of the zeebe.cfg.toml
+# see the gateway section of the application.yaml
 
 # Overview -------------------------------------------
 

@@ -35,6 +35,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.RuleChain;
+import org.springframework.util.unit.DataSize;
 
 public final class SnapshotReplicationTest {
 
@@ -140,7 +141,7 @@ public final class SnapshotReplicationTest {
     data.setMaxSnapshots(MAX_SNAPSHOTS);
     data.setSnapshotPeriod(SNAPSHOT_PERIOD_SECONDS + "s");
     data.setLogSegmentSize("8k");
-    brokerCfg.getNetwork().setMaxMessageSize("8K");
+    brokerCfg.getNetwork().setMaxMessageSize(DataSize.ofKilobytes(8));
 
     final ExporterCfg exporterCfg = new ExporterCfg();
     exporterCfg.setClassName(TestExporter.class.getName());

@@ -22,6 +22,7 @@ import java.util.stream.IntStream;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
+import org.springframework.util.unit.DataSize;
 
 public final class RestoreTest {
   private static final int ATOMIX_SEGMENT_SIZE = (int) ByteValue.ofMegabytes(2).toBytes();
@@ -39,7 +40,7 @@ public final class RestoreTest {
             cfg.getData().setMaxSnapshots(1);
             cfg.getData().setSnapshotPeriod(SNAPSHOT_PERIOD_MIN + "m");
             cfg.getData().setLogSegmentSize(ByteValue.ofBytes(ATOMIX_SEGMENT_SIZE).toString());
-            cfg.getNetwork().setMaxMessageSize(ByteValue.ofBytes(ATOMIX_SEGMENT_SIZE).toString());
+            cfg.getNetwork().setMaxMessageSize(DataSize.ofBytes(ATOMIX_SEGMENT_SIZE));
           });
   private final GrpcClientRule clientRule =
       new GrpcClientRule(

@@ -16,12 +16,12 @@ import io.zeebe.client.api.ZeebeFuture;
 import io.zeebe.client.api.response.ActivateJobsResponse;
 import io.zeebe.client.api.response.ActivatedJob;
 import io.zeebe.test.util.BrokerClassRuleHelper;
-import io.zeebe.util.ByteValue;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
+import org.springframework.util.unit.DataSize;
 
 public final class ActivateJobsTest {
 
@@ -67,7 +67,7 @@ public final class ActivateJobsTest {
     // given
     final int availableJobs = 10;
 
-    final ByteValue maxMessageSize = BROKER_RULE.getBrokerCfg().getNetwork().getMaxMessageSize();
+    final DataSize maxMessageSize = BROKER_RULE.getBrokerCfg().getNetwork().getMaxMessageSize();
     final var largeVariableValue = "x".repeat((int) maxMessageSize.toBytes() / 4);
     final String variablesJson = String.format("{\"variablesJson\":\"%s\"}", largeVariableValue);
 

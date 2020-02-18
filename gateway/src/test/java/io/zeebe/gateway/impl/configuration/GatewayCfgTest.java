@@ -29,6 +29,7 @@ import io.zeebe.util.Environment;
 import io.zeebe.util.TomlConfigurationReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import org.assertj.core.api.Assertions;
@@ -119,7 +120,11 @@ public final class GatewayCfgTest {
     setEnv(ENV_GATEWAY_KEEP_ALIVE_INTERVAL, "30s");
 
     final GatewayCfg expected = new GatewayCfg();
-    expected.getNetwork().setHost("zeebe").setPort(5432).setMinKeepAliveInterval("30s");
+    expected
+        .getNetwork()
+        .setHost("zeebe")
+        .setPort(5432)
+        .setMinKeepAliveInterval(Duration.ofSeconds(30));
     expected
         .getCluster()
         .setContactPoint("broker:432")

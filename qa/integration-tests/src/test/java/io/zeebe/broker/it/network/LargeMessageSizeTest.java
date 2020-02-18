@@ -20,10 +20,11 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
+import org.springframework.util.unit.DataSize;
 
 public final class LargeMessageSizeTest {
 
-  private static final ByteValue MAX_MESSAGE_SIZE = ByteValue.ofMegabytes(4);
+  private static final DataSize MAX_MESSAGE_SIZE = DataSize.ofMegabytes(4);
   // only use half of the max message size because some commands produce two events
   private static final ByteValue LARGE_SIZE = ByteValue.ofMegabytes(2);
   private static final ByteValue METADATA_SIZE = ByteValue.ofBytes(512);
@@ -32,7 +33,7 @@ public final class LargeMessageSizeTest {
       "x".repeat((int) LARGE_SIZE.toBytes() - (int) METADATA_SIZE.toBytes());
 
   private static final EmbeddedBrokerRule BROKER_RULE =
-      new EmbeddedBrokerRule(b -> b.getNetwork().setMaxMessageSize(MAX_MESSAGE_SIZE.toString()));
+      new EmbeddedBrokerRule(b -> b.getNetwork().setMaxMessageSize(MAX_MESSAGE_SIZE));
   private static final GrpcClientRule CLIENT_RULE = new GrpcClientRule(BROKER_RULE);
 
   @ClassRule

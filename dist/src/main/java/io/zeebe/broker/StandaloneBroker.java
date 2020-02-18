@@ -15,12 +15,29 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-public class StandaloneBroker {
+@SpringBootApplication
+public class StandaloneBroker implements CommandLineRunner {
   private static final CountDownLatch WAITING_LATCH = new CountDownLatch(1);
   private static String tempFolder;
 
+  @Autowired BrokerCfg config;
+
   public static void main(final String[] args) throws Exception {
+    if (args.length == 1) {
+      System.setProperty("spring.config.additional-location", "file:" + args[0]);
+    }
+
+    SpringApplication.run(StandaloneBroker.class, args);
+  }
+
+  @Override
+  public void run(final String... args) throws Exception {
+
     final Broker broker;
 
     if (args.length == 1) {
@@ -47,23 +64,22 @@ public class StandaloneBroker {
     WAITING_LATCH.await();
   }
 
-  private static Broker createBrokerFromConfiguration(final String[] args) {
+  private Broker createBrokerFromConfiguration(final String[] args) {
     String basePath = System.getProperty("basedir");
 
     if (basePath == null) {
       basePath = Paths.get(".").toAbsolutePath().normalize().toString();
     }
 
-    return new Broker(args[0], basePath, null);
+    return new Broker(config, basePath, null);
   }
 
-  private static Broker createDefaultBrokerInTempDirectory() {
+  private Broker createDefaultBrokerInTempDirectory() {
     Loggers.SYSTEM_LOGGER.info("No configuration file specified. Using default configuration.");
 
     try {
       tempFolder = Files.createTempDirectory("zeebe").toAbsolutePath().normalize().toString();
-      final BrokerCfg cfg = new BrokerCfg();
-      return new Broker(cfg, tempFolder, null);
+      return new Broker(config, tempFolder, null);
     } catch (final IOException e) {
       throw new RuntimeException("Could not start broker", e);
     }
