@@ -57,43 +57,43 @@ zeebe-broker:
     cpuThreadCount: 2
     ioThreadCount: 2
 
-  exporters:
-    - id: debug-log
-      className: io.zeebe.broker.exporter.debug.DebugLogExporter
-      args:
-        logLevel: debug
-        prettyPrint: false
-    - id: debug-http
-      className: io.zeebe.broker.exporter.debug.DebugHttpExporter
-      args:
-        port: 8000
-        limit: 1024
-      
-    - id: elasticsearch
-      className: io.zeebe.exporter.ElasticsearchExporter
-      args:
-        url: http://localhost:9200
-        bulk:
-          delay: 5
-          size: 1_000
-        authentication:
-          username: elastic
-          password: changeme
-        index:
-          prefix: zeebe-record
-          createTemplate: true
-          command: false
-          event: true
-          rejection: false
-          deployment: true
-          error: true
-          incident: true
-          job: true
-          jobBatch: false
-          message: false
-          messageSubscription: false
-          variable: true
-          variableDocument: true
-          workflowInstance: true
-          workflowInstanceCreation: false
-          workflowInstanceSubscription: false
+#  exporters:
+#    - id: debug-log
+#      className: io.zeebe.broker.exporter.debug.DebugLogExporter
+#      args:
+#        logLevel: debug
+#        prettyPrint: false
+#    - id: debug-http
+#      className: io.zeebe.broker.exporter.debug.DebugHttpExporter
+#      args:
+#        port: 8000
+#        limit: 1024
+#
+#    - id: elasticsearch
+#      className: io.zeebe.exporter.ElasticsearchExporter
+#      args:
+#        url: http://localhost:9200
+#        bulk:
+#         delay: 5
+#         size: 1_000
+#       authentication:
+#         username: elastic
+#         password: changeme
+#       index:
+#         prefix: zeebe-record
+#         createTemplate: true
+#         command: false
+##        event: true
+##        rejection: false
+##        deployment: true
+##        error: true
+##        incident: true
+#         job: true
+#         jobBatch: false
+#         message: false
+#         messageSubscription: false
+#         variable: true
+#         variableDocument: true
+#         workflowInstance: true
+#         workflowInstanceCreation: false
+#         workflowInstanceSubscription: false
