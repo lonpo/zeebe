@@ -21,6 +21,13 @@ func TestTemp(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	s, err := os.Stat(hostDir)
+	if err == nil {
+		fmt.Printf("Host dir '%s' exists; length: %d\n", hostDir, s.Size())
+	} else {
+		fmt.Printf("Host dir at '%s' does not exist\n", hostDir)
+	}
+
 	defer func() {
 		if err = os.RemoveAll(hostDir); err != nil {
 			if _, err = fmt.Fprintf(os.Stderr, "failed to remove tmp dir: %s", err.Error()); err != nil {
