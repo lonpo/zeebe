@@ -1,6 +1,6 @@
 #!/bin/bash -xeu
 
-configFile=/usr/local/zeebe/conf/zeebe.cfg.toml
+configFile=/usr/local/zeebe/conf/zeebe.cfg.yaml
 
 export ZEEBE_HOST=${ZEEBE_HOST:-$(hostname -i)}
 export ZEEBE_GATEWAY_CLUSTER_HOST=${ZEEBE_GATEWAY_CLUSTER_HOST:-${ZEEBE_HOST}}

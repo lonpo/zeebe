@@ -119,7 +119,7 @@
               <mainClass>io.zeebe.broker.StandaloneBroker</mainClass>
               <id>broker</id>
               <commandLineArguments>
-                <commandLineArgument>conf/zeebe.cfg.toml</commandLineArgument>
+                <commandLineArgument>conf/zeebe.cfg.yaml</commandLineArgument>
               </commandLineArguments>
             </program>
             <program>
