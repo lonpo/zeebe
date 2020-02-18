@@ -32,11 +32,11 @@ import (
 	"time"
 )
 
-type zeebeWaitStrategy struct {
-	waitTime time.Duration
+type ZeebeWaitStrategy struct {
+	WaitTime time.Duration
 }
 
-func (s zeebeWaitStrategy) WaitUntilReady(ctx context.Context, target wait.StrategyTarget) error {
+func (s ZeebeWaitStrategy) WaitUntilReady(ctx context.Context, target wait.StrategyTarget) error {
 	host, err := target.Host(ctx)
 	if err != nil {
 		return err
@@ -119,13 +119,13 @@ func sanitizeDockerLogs(log string) string {
 	return builder.String()
 }
 
-func (s zeebeWaitStrategy) waitForTopology(zbClient zbc.Client) error {
+func (s ZeebeWaitStrategy) waitForTopology(zbClient zbc.Client) error {
 	ctx, cancel := context.WithTimeout(context.Background(), utils.DefaultTestTimeout)
 	defer cancel()
 
 	res, err := zbClient.NewTopologyCommand().Send(ctx)
 	for (err != nil && status.Code(err) == codes.Unavailable) || !isStable(res) {
-		time.Sleep(s.waitTime)
+		time.Sleep(s.WaitTime)
 
 		ctx, cancel = context.WithTimeout(context.Background(), utils.DefaultTestTimeout)
 		defer cancel()
@@ -174,7 +174,7 @@ func (s *ContainerSuite) SetupSuite() {
 		ContainerRequest: testcontainers.ContainerRequest{
 			Image:        s.ContainerImage,
 			ExposedPorts: []string{"26500"},
-			WaitingFor:   zeebeWaitStrategy{waitTime: s.WaitTime},
+			WaitingFor:   ZeebeWaitStrategy{WaitTime: s.WaitTime},
 		},
 		Started: true,
 	}
